@@ -1,12 +1,12 @@
-import "./App.css";
-import Hero from "./components/Hero";
+import React from "react";
+import MainRoutes from "./routes/MainRoutes";
 
-function App() {
+const App = () => {
   return (
-    <>
-      <Hero />
-    </>
+    <div>
+      <MainRoutes />
+    </div>
   );
-}
+};
 
 export default App;
