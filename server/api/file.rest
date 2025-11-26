@@ -1,0 +1,9 @@
+POST http://localhost:8000/file/single
+Content-Type: multipart/form-data; boundary=MyBoundary
+
+--MyBoundary
+Content-Disposition: form-data; name="document"; filename="admin.png"
+Content-Type: image/png
+
+< /home/prabinshrestha/Pictures/Screenshots/admin.png
+--MyBoundary--

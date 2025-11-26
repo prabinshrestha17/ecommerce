@@ -3,8 +3,11 @@ const { mongoUri } = require("../src/api/dotenv");
 
 exports.connectDb = async () => {
   try {
-    await mongoose.connect(mongoUri);
-    console.log("database connected successfully ");
+   mongoose
+     .connect(mongoUri)
+     .then(() => console.log("MongoDB connected"))
+     .catch(err => console.log("Error connecting to MongoDB:", err));
+
   } catch (error) {
     return error;
   }

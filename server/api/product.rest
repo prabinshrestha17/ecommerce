@@ -1,0 +1,36 @@
+
+###
+POST http://localhost:8000/product/create 
+Content-Type: application/json
+
+{
+    "productName": "samsung S21",
+    "productImage": "https://example.com/images/hoodie-black.jpg",
+    "productTitle": "The All-Weather Commuter Hoodie",
+    "productDescription": "A sleek, weather-resistant hoodie designed for the modern urban traveler.",
+    "price": "99.99",
+    "category": "Phone and Accessories",
+    "productDetails": [
+        {
+            "title": "Material Composition",
+            "description": "70% Polyester, 30% Spandex for maximum flexibility and water resistance."
+        },
+        {
+            "title": "Care Instructions",
+            "description": "Machine wash cold. Do not bleach. Air dry recommended."
+        },
+        {
+            "title": "Special Feature",
+            "description": "Hidden zip pocket in the left sleeve for storing small items."
+        }
+    ],
+    "size": "xl" 
+}
+
+###
+GET http://localhost:8000/product/get-all
+
+###
+GET http://localhost:8000/product/get-specific/6922934737b335389d5d86fb
+
+
