@@ -12,6 +12,7 @@ const cartRouter = require("./src/routes/cart.routes");
 const cors = require("cors");
 const fileRouter = require("./src/routes/file.routes");
 const { connectDb } = require("./database/connectDatabase");
+const { deployedFrontendUrl, localFrontend } = require("./src/api/dotenv");
 
 const app = express();
 connectDb();
@@ -21,8 +22,10 @@ app.set("view engine", "pug");
 
 app.use(
   cors({
-    origin: ["https://heshopcloths.vercel.app", "http://localhost:5173"],
+    origin: [deployedFrontendUrl, localFrontend],
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 

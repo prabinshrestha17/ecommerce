@@ -8,6 +8,8 @@ const smtpHost = process.env.SMTP_HOST;
 const appPassword = process.env.APP_PASSWORD;
 const jwtSecret = process.env.JWT_SECRET;
 const refreshToken = process.env.JWT_REFRESH_SECRET;
+const deployedFrontendUrl = process.env.DEPLOYED_FRONT_URL;
+const localFrontend = process.env.LOCAL_FRONTEND_URL;
 
 console.log(mongoUri);
 
@@ -27,4 +29,6 @@ module.exports = {
   apiKey,
   apiSecret,
   cloudinaryUrl,
+  deployedFrontendUrl,
+  localFrontend,
 };
