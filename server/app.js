@@ -19,7 +19,12 @@ connectDb();
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
 
-app.use(cors("http://localhost:5173/"));
+app.use(
+  cors({
+    origin: "https://heshopcloths.vercel.app",
+    credentials: true,
+  })
+);
 
 app.use(logger("dev"));
 app.use(express.json());
