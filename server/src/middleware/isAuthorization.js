@@ -1,25 +1,10 @@
-const Auth = require("../model/auth.model.js");
-const { Webuser } = require("../schema/model.js");
-
-const isAuthorization = roles => {
-  return async (req, res, next) => {
-    try {
-      let id = req._id;
-      let result = await Auth.findById(id);
-      let tokenRole = result.role;
-
-      if (roles.includes(tokenRole)) {
-        next();
-      } else {
-        console.log(403, "User not authorized");
-      }
-    } catch (error) {
-      res.status(403).json({
-        success: false,
-        message: "User not authorized",
-      });
+const isAuthorized = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({ error: "Access denied" });
     }
+    next();
   };
 };
 
-module.exports = { isAuthorization };
+module.exports = isAuthorized;

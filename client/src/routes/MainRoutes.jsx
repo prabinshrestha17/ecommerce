@@ -10,6 +10,8 @@ import ProductDetails from "../pages/men/ProductDetails";
 import CartPage from "../components/cart/page";
 import Login from "../pages/auth/Login/LoginIn";
 import Signup from "../pages/auth/Signup/Signup";
+import Account from "../components/common/Account";
+import OrderSuccess from "../components/common/OrderSuccess";
 
 const MainRoutes = () => {
   return (
@@ -22,9 +24,11 @@ const MainRoutes = () => {
         <Route path="/men" element={<Men />} />
         <Route path="/men/:id" element={<ProductDetails />} />
         <Route path="/mycart" element={<CartPage />} />
+        <Route path="/account" element={<Account />} />
         <Route path="*" element={<NotFound />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/thankyou" element={<OrderSuccess />} />
       </Routes>
       <Footer />
     </div>

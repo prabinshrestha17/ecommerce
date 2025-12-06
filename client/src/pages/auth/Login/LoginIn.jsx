@@ -1,12 +1,54 @@
 import React, { useState } from "react";
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { baseUrl } from "../../../../api/env";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = e => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const response = await axios.post(`${baseUrl}/auth/login`, formData);
+
+      if (response.data.success) {
+        localStorage.setItem("accessToken", response.data.accessToken);
+        localStorage.setItem("refreshToken", response.data.refreshToken);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+
+        toast.success("Login Successful! Redirecting...");
+
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1500);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex w-full bg-white">
+      <ToastContainer position="top-center" autoClose={1500} />
       <div className="hidden lg:flex w-1/2 relative bg-[#F0F0F0] items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-black/5 z-10" />
         <img
@@ -32,7 +74,7 @@ export default function Login() {
             Welcome back! Please enter your details.
           </p>
 
-          <form className="flex flex-col gap-5">
+          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
             <div className="space-y-2">
               <label className="text-sm font-medium text-black ml-1">
                 Email
@@ -41,8 +83,12 @@ export default function Login() {
                 <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-black transition-colors w-5 h-5" />
                 <input
                   type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
                   placeholder="Enter your email"
                   className="w-full bg-[#F0F0F0] text-black placeholder-gray-400 rounded-full py-4 pl-14 pr-6 outline-none focus:ring-2 focus:ring-black/5 transition-all"
+                  required
                 />
               </div>
             </div>
@@ -55,8 +101,12 @@ export default function Login() {
                 <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-black transition-colors w-5 h-5" />
                 <input
                   type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   placeholder="••••••••"
                   className="w-full bg-[#F0F0F0] text-black placeholder-gray-400 rounded-full py-4 pl-14 pr-14 outline-none focus:ring-2 focus:ring-black/5 transition-all"
+                  required
                 />
                 <button
                   type="button"
@@ -76,14 +126,23 @@ export default function Login() {
                 />
                 <span className="text-gray-600">Remember me</span>
               </label>
-              <a href="#" className="font-medium text-black hover:underline">
+              <Link
+                to="/forgot-password"
+                className="font-medium text-black hover:underline"
+              >
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
-            <button className="w-full bg-black text-white py-4 rounded-full font-bold text-lg mt-4 hover:bg-gray-800 transition-all flex items-center justify-center gap-2 group shadow-lg shadow-black/20">
-              Sign In
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-black text-white py-4 rounded-full font-bold text-lg mt-4 hover:bg-gray-800 transition-all flex items-center justify-center gap-2 group shadow-lg shadow-black/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Signing In..." : "Sign In"}
+              {!loading && (
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              )}
             </button>
           </form>
 

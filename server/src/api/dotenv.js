@@ -7,6 +7,7 @@ const port = process.env.PORT;
 const smtpHost = process.env.SMTP_HOST;
 const appPassword = process.env.APP_PASSWORD;
 const jwtSecret = process.env.JWT_SECRET;
+const refreshToken = process.env.JWT_REFRESH_SECRET;
 
 console.log(mongoUri);
 
@@ -17,6 +18,7 @@ const cloudinaryUrl = process.env.CLOUDINARY_URL;
 
 module.exports = {
   mongoUri,
+  refreshToken,
   port,
   smtpHost,
   appPassword,

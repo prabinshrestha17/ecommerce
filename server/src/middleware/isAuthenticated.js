@@ -1,22 +1,17 @@
-const { jwtSecret } = require("../api/dotenv");
+const { verifyToken } = require("../utils/jwt");
 
 const isAuthenticated = async (req, res, next) => {
   try {
-    let tokenString = req.headers.authorization;
-    let tokenArray = tokenString.split(" ");
-    let token = tokenArray[1];
-    // console.log(token);
-    //now, we need to verify the token
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ error: "No token provided" });
+    }
 
-    let userTokenVerified = await jwt.verify(token, jwtSecret);
-    req._id = userTokenVerified.id;
-
+    const decoded = verifyToken(token);
+    req.user = decoded;
     next();
   } catch (error) {
-    res.status(401).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(401).json({ error: "Invalid token" });
   }
 };
 

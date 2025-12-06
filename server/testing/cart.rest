@@ -1,0 +1,16 @@
+###
+POST http://localhost:8000/cart/add
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MzQyMjY1YTRlNGRkMWM2NmE5YTMzNSIsImVtYWlsIjoieHRoYXByYWJpbjEyNUBnbWFpbC5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTc2NTAyNjA5NSwiZXhwIjoxNzY1MDI2OTk1fQ.4sfXrQI9o4Ybsc-YbQI0bDUGzeEWVWnvj-Cx_XClpXk
+Content-Type: application/json
+
+{
+  "productId": "6933a9b9db8519f6fc89fec6",
+  "quantity": 2,
+  "color": "White",
+  "size": "XL"
+}
+
+
+###
+GET http://localhost:8000/cart
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MzQyMjY1YTRlNGRkMWM2NmE5YTMzNSIsImVtYWlsIjoieHRoYXByYWJpbjEyNUBnbWFpbC5jb20iLCJyb2xlIjoidXNlciIsImlhdCI6MTc2NTAzMDM5MywiZXhwIjoxNzY1MDMxMjkzfQ.Y4_HgZtcFpJ98Hvf9KGWX2lV2K3yqtX9YJp8JM8_WYc

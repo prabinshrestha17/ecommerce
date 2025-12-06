@@ -1,13 +1,73 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Heart, ShoppingBag, UserRound, Search, Framer } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import {
+  Heart,
+  ShoppingBag,
+  UserRound,
+  Search,
+  Framer,
+  LogOut,
+} from "lucide-react";
+import axios from "axios";
+import { baseUrl } from "../../api/env";
 
 const Navbar = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("accessToken");
+      const savedUser = localStorage.getItem("user");
+
+      if (token) {
+        // Optimistically set login true if token exists to update UI immediately
+        setIsLoggedIn(true);
+        if (savedUser) setUser(JSON.parse(savedUser));
+
+        try {
+          // Verify with backend
+          const response = await axios.get(`${baseUrl}/user/profile`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (response.data.success) {
+            setIsLoggedIn(true);
+            setUser(response.data.data);
+            localStorage.setItem("user", JSON.stringify(response.data.data));
+          } else {
+            handleLogout();
+          }
+        } catch (error) {
+          // If 401 Unauthorized, then logout
+          if (error.response && error.response.status === 401) {
+            handleLogout();
+          }
+        }
+      } else {
+        setIsLoggedIn(false);
+        setUser(null);
+      }
+    };
+    checkAuth();
+  }, [location]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    setIsLoggedIn(false);
+    setUser(null);
+    navigate("/login");
+  };
 
   const TopBarLinks = [
-    { name: "Sign In", path: "/signin" },
     { name: "Find a Store", path: "/stores" },
     { name: "Help", path: "/help" },
   ];
@@ -57,6 +117,18 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center space-x-6">
+            {isLoggedIn ? (
+              <span className="font-semibold text-green-600">
+                Welcome, {user?.name || "User"}
+              </span>
+            ) : (
+              <Link
+                to="/login"
+                className="flex-none font-semibold hover:text-gray-900 transition duration-150 whitespace-nowrap"
+              >
+                Sign In
+              </Link>
+            )}
             {TopBarLinks.map(item => (
               <Link
                 key={item.name}
@@ -66,6 +138,14 @@ const Navbar = () => {
                 | {item.name} |
               </Link>
             ))}
+            {isLoggedIn && (
+              <button
+                onClick={handleLogout}
+                className="font-semibold hover:text-gray-900 transition duration-150"
+              >
+                | Logout |
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -105,12 +185,23 @@ const Navbar = () => {
                 </button>
               </div>
               <div className="flex items-center justify-center gap-2">
-                <Link
-                  to="/account"
-                  className="hover:text-gray-900 p-2 hover:bg-gray-200 hover:rounded-full transition-all duration-300"
-                >
-                  <UserRound className="w-5 h-5" />
-                </Link>
+                {isLoggedIn ? (
+                  <Link
+                    to="/account"
+                    className="hover:text-gray-900 p-2 hover:bg-gray-200 hover:rounded-full transition-all duration-300"
+                    title="Account"
+                  >
+                    <UserRound className="w-5 h-5" />
+                  </Link>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="hover:text-gray-900 p-2 text-sm font-bold hover:bg-gray-200 rounded-lg transition-all duration-300"
+                  >
+                    Login
+                  </Link>
+                )}
+
                 <Link
                   to="/wishlist"
                   className="hover:text-gray-900 p-2 hover:bg-gray-200 hover:rounded-full transition-all duration-300"
@@ -118,11 +209,21 @@ const Navbar = () => {
                   <Heart className="w-5 h-5" />
                 </Link>
                 <Link
-                  to="/cart"
+                  to="/mycart"
                   className="hover:text-gray-900 p-2 hover:bg-gray-200 hover:rounded-full transition-all duration-300"
                 >
                   <ShoppingBag className="w-5 h-5" />
                 </Link>
+
+                {isLoggedIn && (
+                  <button
+                    onClick={handleLogout}
+                    className="hover:text-red-600 p-2 hover:bg-gray-200 hover:rounded-full transition-all duration-300"
+                    title="Logout"
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </button>
+                )}
               </div>
             </div>
           </nav>

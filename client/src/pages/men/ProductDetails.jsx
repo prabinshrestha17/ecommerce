@@ -1,5 +1,4 @@
-"use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Minus,
   Plus,
@@ -8,7 +7,11 @@ import {
   ChevronDown,
   MoreHorizontal,
 } from "lucide-react";
-import { useNavigate, useRoutes } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { baseUrl } from "../../../api/env";
 
 const StarIcon = ({ filled, half }) => (
   <svg
@@ -121,119 +124,200 @@ const reviewsData = [
     content:
       "As a UI/UX enthusiast, I value simplicity and functionality. This t-shirt not only represents those principles but also feels great to wear. It's evident that the designer poured their creativity into making this t-shirt stand out.",
   },
-  {
-    id: 5,
-    name: "Liam K.",
-    rating: 5,
-    date: "August 18, 2023",
-    content:
-      "This t-shirt is a testament to the fact that design speaks louder than words. The intricate details and the overall design philosophy. I'd highly recommend it to anyone looking to make a statement.",
-  },
-  {
-    id: 6,
-    name: "Ava H.",
-    rating: 4.5,
-    date: "August 19, 2023",
-    content:
-      "I'm not just wearing a t-shirt; I'm wearing a piece of design art. The creative graphics and the comfortable fit make it a winner. It's inspiring to see such creativity in clothing.",
-  },
 ];
 
 const ProductDetails = () => {
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [selectedColor, setSelectedColor] = useState("olive");
-  const [selectedSize, setSelectedSize] = useState("Large");
-  const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState("reviews");
+  const { id } = useParams();
   const navigate = useNavigate();
 
-  const product = {
-    title: "One Life Graphic T-shirt",
-    rating: 4.5,
-    price: 260,
-    oldPrice: 300,
-    discount: "-40%",
-    description:
-      "This graphic t-shirt which is perfect for any occasion. Crafted from a soft and breathable fabric, it offers superior comfort and style.",
-    images: [
-      "https://cdn.pixabay.com/photo/2016/11/23/06/57/isolated-t-shirt-1852113_1280.png",
-      "https://cdn.pixabay.com/photo/2017/01/13/04/56/t-shirt-1976334_1280.png",
-      "https://cdn.pixabay.com/photo/2016/11/23/06/57/isolated-t-shirt-1852114_1280.png",
-    ],
-    colors: [
-      { name: "olive", value: "#4F4631" },
-      { name: "green", value: "#314F4A" },
-      { name: "navy", value: "#31344F" },
-    ],
-    sizes: ["Small", "Medium", "Large", "X-Large"],
-  };
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [selectedColor, setSelectedColor] = useState("");
+  const [selectedSize, setSelectedSize] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [activeTab, setActiveTab] = useState("reviews");
+
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      try {
+        const response = await axios.get(
+          `${baseUrl}/product/get-specific/${id}`
+        );
+        if (response.data.success) {
+          const fetchedData = response.data.data;
+          setProduct(fetchedData);
+
+          if (fetchedData.colors && fetchedData.colors.length > 0) {
+            setSelectedColor(fetchedData.colors[0]);
+          }
+          if (fetchedData.size && fetchedData.size.length > 0) {
+            setSelectedSize(fetchedData.size[0]);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchProductDetails();
+    }
+  }, [id]);
 
   const handleQuantity = type => {
     if (type === "dec" && quantity > 1) setQuantity(quantity - 1);
     if (type === "inc") setQuantity(quantity + 1);
   };
 
-  const hadndleClick = () => {
-    navigate("/mycart");
+  const handleAddToCart = async () => {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+      toast.error("Please login to add items to cart");
+      setTimeout(() => navigate("/login"), 1500);
+      return;
+    }
+
+    // Validation
+    if (!selectedColor && product.colors?.length > 0) {
+      toast.error("Please select a color");
+      return;
+    }
+    if (!selectedSize && product.size?.length > 0) {
+      toast.error("Please select a size");
+      return;
+    }
+
+    try {
+      const payload = {
+        productId: product._id,
+        quantity: quantity,
+        color: selectedColor,
+        size: selectedSize,
+        price: product.priceAfterDiscount || product.price,
+        productName: product.productName,
+        productImage:
+          product.productImage && product.productImage.length > 0
+            ? product.productImage[selectedImage] // Send the selected image
+            : "",
+      };
+
+      const response = await axios.post(`${baseUrl}/cart/add`, payload, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (
+        response.data.success ||
+        response.status === 200 ||
+        response.status === 201
+      ) {
+        toast.success("Item added to cart successfully!");
+        setTimeout(() => navigate("/mycart"), 1000);
+      }
+    } catch (error) {
+      console.error(error);
+      const errorMsg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to add to cart";
+      toast.error(errorMsg);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black"></div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center bg-white">
+        <h2 className="text-2xl font-bold">Product not found</h2>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full bg-white min-h-screen pb-20">
+      <ToastContainer position="top-right" autoClose={2000} theme="dark" />
       <div className="max-w-[1400px] mx-auto px-4 md:px-8 pt-8">
         <div className="flex flex-col lg:flex-row gap-10 mb-16">
+          {/* Images Section */}
           <div className="w-full lg:w-1/2 flex flex-col-reverse lg:flex-row gap-4">
             <div className="flex lg:flex-col gap-4 overflow-x-auto lg:overflow-visible">
-              {product.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setSelectedImage(idx)}
-                  className={`relative w-24 h-24 lg:w-36 lg:h-40 bg-[#F0EEED] rounded-[20px] overflow-hidden flex-shrink-0 border-2 transition-all ${
-                    selectedImage === idx
-                      ? "border-black"
-                      : "border-transparent"
-                  }`}
-                >
-                  <img
-                    src={img}
-                    alt="Thumbnail"
-                    fill
-                    className="object-contain p-2 mix-blend-multiply"
-                  />
-                </button>
-              ))}
+              {product.productImage &&
+                product.productImage.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(idx)}
+                    className={`relative w-24 h-24 lg:w-36 lg:h-40 bg-[#F0EEED] rounded-[20px] overflow-hidden flex-shrink-0 border-2 transition-all ${
+                      selectedImage === idx
+                        ? "border-black"
+                        : "border-transparent"
+                    }`}
+                  >
+                    <img
+                      src={img}
+                      alt="Thumbnail"
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
             </div>
 
             <div className="relative w-full aspect-square bg-[#F0EEED] rounded-[20px] overflow-hidden">
-              <img
-                src={product.images[selectedImage]}
-                alt="Main Product"
-                fill
-                className="object-contain p-8 mix-blend-multiply hover:scale-110 transition-transform duration-500"
-                priority
-              />
+              {product.productImage && product.productImage[selectedImage] ? (
+                <img
+                  src={product.productImage[selectedImage]}
+                  alt="Main Product"
+                  className="w-full h-full object-contain p-2 mix-blend-multiply hover:scale-110 transition-transform duration-500"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400">
+                  No Image
+                </div>
+              )}
             </div>
           </div>
 
+          {/* Details Section */}
           <div className="w-full lg:w-1/2 flex flex-col gap-6">
             <h1 className="text-4xl font-black uppercase tracking-tighter text-black">
-              {product.title}
+              {product.productName}
             </h1>
 
             <div className="flex items-center gap-2">
-              <div className="flex gap-1">{renderStars(product.rating)}</div>
-              <span className="text-gray-600 text-sm">{product.rating}/5</span>
+              <div className="flex gap-1">
+                {renderStars(product.rating || 0)}
+              </div>
+              <span className="text-gray-600 text-sm">
+                {product.rating || 0}/5
+              </span>
             </div>
 
             <div className="flex items-center gap-3">
               <span className="text-3xl font-bold text-black">
-                ${product.price}
+                ${product.priceAfterDiscount || product.price}
               </span>
-              <span className="text-3xl font-bold text-gray-300 line-through">
-                ${product.oldPrice}
-              </span>
-              <span className="bg-red-100 text-red-500 px-3 py-1 rounded-full text-sm font-medium">
-                {product.discount}
-              </span>
+              {product.discount && (
+                <>
+                  <span className="text-3xl font-bold text-gray-300 line-through">
+                    ${product.price}
+                  </span>
+                  <span className="bg-red-100 text-red-500 px-3 py-1 rounded-full text-sm font-medium">
+                    {product.discount}
+                  </span>
+                </>
+              )}
             </div>
 
             <p className="text-gray-600 leading-relaxed text-base border-b border-gray-200 pb-6">
@@ -242,38 +326,52 @@ const ProductDetails = () => {
 
             <div>
               <p className="text-gray-500 text-sm mb-3">Select Colors</p>
-              <div className="flex gap-4">
-                {product.colors.map(color => (
-                  <button
-                    key={color.name}
-                    onClick={() => setSelectedColor(color.name)}
-                    className="w-9 h-9 rounded-full flex items-center justify-center transition-transform active:scale-95"
-                    style={{ backgroundColor: color.value }}
-                  >
-                    {selectedColor === color.name && (
-                      <Check className="text-white w-4 h-4" />
-                    )}
-                  </button>
-                ))}
+              <div className="flex flex-wrap gap-4">
+                {product.colors &&
+                  product.colors.map(color => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`w-9 h-9 rounded-full flex items-center justify-center transition-transform active:scale-95 border shadow-sm ${
+                        selectedColor === color
+                          ? "border-black ring-1 ring-black"
+                          : "border-gray-200"
+                      }`}
+                      style={{ backgroundColor: color }}
+                      title={color}
+                    >
+                      {selectedColor === color && (
+                        <Check
+                          className={`w-4 h-4 ${
+                            color.toLowerCase() === "white" ||
+                            color === "#ffffff"
+                              ? "text-black"
+                              : "text-white"
+                          }`}
+                        />
+                      )}
+                    </button>
+                  ))}
               </div>
             </div>
 
             <div className="border-b border-gray-200 pb-6">
               <p className="text-gray-500 text-sm mb-3">Choose Size</p>
               <div className="flex flex-wrap gap-3">
-                {product.sizes.map(size => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-6 py-3 rounded-full text-sm font-medium transition-colors ${
-                      selectedSize === size
-                        ? "bg-black text-white"
-                        : "bg-[#F0F0F0] text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {product.size &&
+                  product.size.map(size => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`px-6 py-3 rounded-full text-sm font-medium transition-colors ${
+                        selectedSize === size
+                          ? "bg-black text-white"
+                          : "bg-[#F0F0F0] text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
               </div>
             </div>
 
@@ -294,7 +392,7 @@ const ProductDetails = () => {
                 </button>
               </div>
               <button
-                onClick={hadndleClick}
+                onClick={handleAddToCart}
                 className="flex-1 bg-black text-white rounded-full py-3 px-8 font-medium hover:bg-gray-800 transition-colors"
               >
                 Add to Cart
@@ -334,10 +432,7 @@ const ProductDetails = () => {
                 Product Specifications
               </h3>
               <p className="text-gray-600 leading-relaxed">
-                Made from 100% premium cotton, this t-shirt features a
-                double-stitched neckline and sleeves for durability. Pre-shrunk
-                to ensure the fit stays true after washing. The high-quality
-                graphic print is resistant to fading and cracking.
+                {product.description}
               </p>
             </div>
           )}
@@ -350,8 +445,8 @@ const ProductDetails = () => {
               <p className="text-gray-600">
                 <strong>Q: How does the sizing run?</strong>
                 <br />
-                A: This t-shirt runs true to size. We recommend ordering your
-                usual size for a standard fit.
+                A: This runs true to size. We recommend ordering your usual size
+                for a standard fit.
               </p>
             </div>
           )}

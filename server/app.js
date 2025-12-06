@@ -21,7 +21,7 @@ app.set("view engine", "pug");
 
 app.use(
   cors({
-    origin: "https://heshopcloths.vercel.app",
+    origin: ["https://heshopcloths.vercel.app", "http://localhost:5173"],
     credentials: true,
   })
 );
@@ -34,7 +34,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
-app.use("/api/auth", authRouter);
+app.use("/auth", authRouter);
 
 app.use("/product", router);
 app.use("/cart", cartRouter);

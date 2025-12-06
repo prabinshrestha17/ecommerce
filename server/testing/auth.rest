@@ -1,26 +1,24 @@
 ###
-POST http://localhost:8000/api/auth/register
+POST http://localhost:8000/auth/register
 Content-Type: application/json
 
 {
-  "userName": "prabin shrestha",
+  "name": "prabin shrestha",
   "email": "xthaprabin125@gmail.com",
-  "password": "password123",
-  "confirmPassword": "password123"
+  "password": "password123"
 }
 
 ###
 
-GET http://localhost:8000/api/auth/verify-email/206a84b080b7c7c5ba727d8a8085acc1841c6304be403cc5d64301651e07d832
+GET http://localhost:8000/auth/verify-email/cd16e1ac83c9b4fcbb7a2236476e265aa7fd5f4b14ee7aa1d277e92299b17b66
 
 
 
 ###
-POST http://localhost:8000/api/auth/login
+POST http://localhost:8000/auth/login
 Content-Type: application/json
 
 {
-  "email": "xthaprabin125@gmail.com",
-  "password": "password123",
-  "confirmPassword": "password123"
+ "email": "xthaprabin125@gmail.com",
+  "password": "password123"
 }

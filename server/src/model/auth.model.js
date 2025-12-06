@@ -2,16 +2,16 @@ const mongoose = require("mongoose");
 
 const authSchema = new mongoose.Schema(
   {
-    userName: {
+    name: {
       type: String,
       required: true,
-      trim: true,
     },
     email: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
+      trim: true,
     },
     password: {
       type: String,
@@ -19,20 +19,21 @@ const authSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      default: "user",
       enum: ["user", "admin"],
+      default: "user",
     },
-    isEmailVerified: {
+    isVerified: {
       type: Boolean,
       default: false,
     },
-    emailVerificationToken: {
-      type: String,
-      default: null,
-    },
-    emailVerificationTokenExpiry: {
-      type: Date,
-      default: null,
+    verificationToken: String,
+    verificationTokenExpires: Date,
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
+    lastLogin: Date,
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   {

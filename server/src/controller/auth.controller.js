@@ -1,126 +1,105 @@
 const {
-  emailVerificationTemplate,
-  welcomeEmailTemplate,
-} = require("../email/emailVerificationTemplate");
-const { sendEmail } = require("../email/sendEmail");
-const {
-  registerAuth,
-  loginAuth,
-  verifyEmail,
+  RegisterService,
+  LoginService,
+  VerifyEmailService,
+  ForgotPasswordService,
+  ResetPasswordService,
+  RefreshTokenService,
+  GetProfileService,
+  UpdateProfileService,
+  ChangePasswordService,
+  GetAllUsersService,
 } = require("../services/auth.service");
 
-exports.registerController = async (req, res, next) => {
+exports.register = async (req, res) => {
   try {
-    const { userName, email, password, confirmPassword } = req.body;
+    const result = await RegisterService(req.body);
+    res.status(201).json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
 
-    // Validation
-    if (!userName || !email || !password || !confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required",
-      });
-    }
+exports.login = async (req, res) => {
+  try {
+    const result = await LoginService(req.body);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
 
-    if (password !== confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        message: "Passwords do not match",
-      });
-    }
+exports.verifyEmail = async (req, res) => {
+  try {
+    const result = await VerifyEmailService(req.params.token);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
 
-    const { user, emailVerificationToken } = await registerAuth(
-      userName,
-      email,
-      password
+exports.forgotPassword = async (req, res) => {
+  try {
+    const result = await ForgotPasswordService(req.body.email);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const result = await ResetPasswordService(
+      req.params.token,
+      req.body.newPassword
     );
-
-    // Send verification email
-    const verificationLink = `${
-      process.env.CLIENT_URL || "http://localhost:5173"
-    }/verify-email/${emailVerificationToken}`;
-
-    await sendEmail({
-      to: email,
-      subject: "Verify Your Email - Ecommerce",
-      html: emailVerificationTemplate(userName, verificationLink),
-    });
-
-    return res.status(201).json({
-      success: true,
-      message: "Registration successful. Please verify your email.",
-      user,
-    });
+    res.status(200).json(result);
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(400).json({ error: error.message });
   }
 };
 
-exports.verifyEmailController = async (req, res, next) => {
+exports.refreshToken = async (req, res) => {
   try {
-    const { token } = req.params;
-
-    if (!token) {
-      return res.status(400).json({
-        success: false,
-        message: "Verification token is required",
-      });
-    }
-
-    const result = await verifyEmail(token);
-
-    // Send welcome email
-    await sendEmail({
-      to: result.user.email,
-      subject: "Welcome to Ecommerce",
-      html: welcomeEmailTemplate(result.user.userName),
-    });
-
-    return res.status(200).json({
-      success: true,
-      message: "Email verified successfully",
-      user: result.user,
-    });
+    const result = await RefreshTokenService(req.body.refreshToken);
+    res.status(200).json(result);
   } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(401).json({ error: error.message });
   }
 };
 
-exports.loginController = async (req, res, next) => {
+exports.getProfile = async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "Email and password are required",
-      });
-    }
-
-    const { token, user } = await loginAuth(email, password);
-
-    return res.status(200).json({
-      success: true,
-      message: "Login successful",
-      token,
-      user,
-    });
+    const result = await GetProfileService(req.user.id);
+    res.status(200).json(result);
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(400).json({ error: error.message });
   }
 };
 
-exports.logoutController = (req, res) => {
-  return res.status(200).json({
-    success: true,
-    message: "Logout successful",
-  });
+exports.updateProfile = async (req, res) => {
+  try {
+    const result = await UpdateProfileService(req.user.id, req.body);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  try {
+    const result = await ChangePasswordService(req.user.id, req.body);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+exports.getAllUsers = async (req, res) => {
+  try {
+    const result = await GetAllUsersService(req.query);
+    res.status(200).json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
 };
