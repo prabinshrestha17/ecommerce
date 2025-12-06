@@ -1,27 +1,29 @@
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
-const path = require("path");
-const fs = require("fs");
-const { cloudName, apiKey, apiSecret } = require("../api/dotenv");
+require("dotenv").config();
 
 cloudinary.config({
-  cloud_name: cloudName,
-  api_key: apiKey,
-  api_secret: apiSecret,
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const storage = multer.diskStorage({
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-  const ext = path.extname(file.originalname).toLowerCase();
-  const allowedImageExts = [".jpg", ".jpeg", ".png", ".gif", ".svg"];
-  const allowedVideoExts = [".mp4", ".mov", ".avi", ".mkv"];
+  const allowedImageExts = [
+    "image/jpeg",
+    "image/png",
+    "image/jpg",
+    "image/gif",
+    "image/svg+xml",
+  ];
+  const allowedVideoExts = ["video/mp4", "video/mov", "video/avi", "video/mkv"];
 
-  if (allowedImageExts.includes(ext) || allowedVideoExts.includes(ext)) {
+  if (
+    allowedImageExts.includes(file.mimetype) ||
+    allowedVideoExts.includes(file.mimetype)
+  ) {
     cb(null, true);
   } else {
     cb(
@@ -37,17 +39,18 @@ const upload = multer({
   fileFilter,
 });
 
-const uploadToCloudinary = async (filePath, folder) => {
-  try {
-    const result = await cloudinary.uploader.upload(filePath, {
-      folder,
-      resource_type: "auto",
-    });
-    fs.unlinkSync(filePath);
-    return result;
-  } catch (error) {
-    throw error;
-  }
+const uploadToCloudinary = async (fileBuffer, folder) => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder, resource_type: "auto" },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+
+    stream.end(fileBuffer);
+  });
 };
 
 module.exports = { upload, uploadToCloudinary };

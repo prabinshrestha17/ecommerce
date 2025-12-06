@@ -1,31 +1,27 @@
 const { uploadToCloudinary } = require("../uploads/multer");
-const path = require("path");
 
+// Single file upload
 const singleFileController = async (req, res) => {
   try {
     if (!req.file) {
-      return errorResponse(res, 400, "No file uploaded");
+      return res
+        .status(400)
+        .json({ success: false, message: "No file uploaded" });
     }
 
-    const ext = path.extname(req.file.originalname).toLowerCase();
-    const folder = [".mp4", ".mov", ".avi", ".mkv"].includes(ext)
-      ? "videos"
-      : "images";
+    const buffer = req.file.buffer;
+    const ext = req.file.mimetype.includes("video") ? "video" : "image";
+    const folder = ext === "video" ? "videos" : "images";
 
-    const result = await uploadToCloudinary(req.file.path, folder);
+    const result = await uploadToCloudinary(buffer, folder);
 
     res.status(200).json({
       success: true,
       message: "File uploaded successfully",
-      data: {
-        url: result.secure_url,
-      },
+      data: { url: result.secure_url },
     });
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
@@ -33,23 +29,21 @@ const singleFileController = async (req, res) => {
 const multipleFileController = async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "No files uploaded",
-      });
+      return res
+        .status(400)
+        .json({ success: false, message: "No files uploaded" });
     }
 
-    const urls = [];
+    const urls = await Promise.all(
+      req.files.map(async file => {
+        const buffer = file.buffer;
+        const ext = file.mimetype.includes("video") ? "video" : "image";
+        const folder = ext === "video" ? "videos" : "images";
 
-    for (const file of req.files) {
-      const ext = path.extname(file.originalname).toLowerCase();
-      const folder = [".mp4", ".mov", ".avi", ".mkv"].includes(ext)
-        ? "videos"
-        : "images";
-
-      const result = await uploadToCloudinary(file.path, folder);
-      urls.push(result.secure_url);
-    }
+        const result = await uploadToCloudinary(buffer, folder);
+        return result.secure_url;
+      })
+    );
 
     res.status(200).json({
       success: true,
