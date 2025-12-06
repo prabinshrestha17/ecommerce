@@ -13,7 +13,7 @@ const router = express.Router();
 router.post("/create", validateCreateProduct, createProductController);
 router.get("/get-all", getAllProductsController);
 router.get("/get-specific/:id", getSpecificproductsController);
-router.put("/update", updateProductController);
-router.delete("/delete", deleteProductController);
+router.put("/update/:id", updateProductController);
+router.delete("/delete/:id", deleteProductController);
 
 module.exports = router;

@@ -10,6 +10,7 @@ exports.createProductController = async (req, res, next) => {
   try {
     const data = req.body;
     const result = await createProductService(data);
+
     res.status(201).json({
       success: true,
       message: "Product Created Successfully",
@@ -44,6 +45,9 @@ exports.getSpecificproductsController = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await getSpecificProductService(id);
+    if (!result.id) {
+      throw new Error("product Not found");
+    }
     res.status(200).json({
       success: true,
       message: "Product fetched Successfully",
@@ -59,9 +63,9 @@ exports.getSpecificproductsController = async (req, res) => {
 
 exports.updateProductController = async (req, res) => {
   try {
-    const id = req.params;
+    const { id } = req.params;
     const data = req.body;
-    const result = await updateProductService(id, data);
+    const result = await updateProductService({ id, data });
 
     res.status(200).json({
       success: true,
@@ -78,12 +82,14 @@ exports.updateProductController = async (req, res) => {
 
 exports.deleteProductController = async (req, res) => {
   try {
-    const id = req.params;
+    const { id } = req.params;
     const result = await deleteProductService(id);
+    if (!result) {
+      throw new Error("Product not found or deleted");
+    }
     res.status(200).json({
       success: true,
-      message: "Product fetched Successfully",
-      data: result,
+      message: "Product deleted Successfully",
     });
   } catch (error) {
     res.status(500).json({

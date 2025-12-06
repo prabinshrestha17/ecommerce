@@ -1,7 +1,12 @@
 import React from "react";
+import Cart from "./Cart";
 
-const page = () => {
-  return <div>main cart section</div>;
+const CartPage = () => {
+  return (
+    <div className="w-full min-h-screen bg-white">
+      <Cart />
+    </div>
+  );
 };
 
-export default page;
+export default CartPage;

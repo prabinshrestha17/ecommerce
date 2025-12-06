@@ -3,87 +3,51 @@ const Joi = require("joi");
 const createProductSchema = Joi.object({
   productName: Joi.string().trim().required().messages({
     "any.required": "Product name is required.",
-    "string.base": "Product name must be a string.",
   }),
 
-  productTitle: Joi.string().trim().required().messages({
-    "any.required": "Product title is required.",
-    "string.base": "Product title must be a string.",
+  // Accepts an Array of URL strings
+  productImage: Joi.array().items(Joi.string().uri()).required().messages({
+    "array.base": "Product images must be an array of URLs.",
+    "any.required": "At least one product image is required.",
   }),
 
-  productDescription: Joi.string().required().messages({
-    "any.required": "Product description is required.",
-    "string.base": "Product description must be a string.",
-  }),
-
-  category: Joi.string().required().messages({
-    "any.required": "Product category is required.",
-    "string.base": "Product category must be a string.",
-  }),
-
-  productImage: Joi.string().required().messages({
-    "any.required": "Product image is required.",
-    "string.base": "Product image must be a string.",
-  }),
-
-  price: Joi.alternatives()
-    .try(
-      Joi.number().positive(),
-      Joi.string().pattern(/^[0-9]+(\.[0-9]{1,2})?$/)
-    )
+  // Validates the gender dropdown values
+  gender: Joi.string()
+    .valid("Male", "Female", "Kids", "Unisex")
     .required()
     .messages({
-      "any.required": "Price is required.",
-      "alternatives.match":
-        "Price must be a positive number or a valid price string.",
+      "any.only": "Gender must be Male, Female, Kids, or Unisex.",
+      "any.required": "Gender selection is required.",
     }),
 
-  // UPDATED HERE → Array of Objects
-  productDetails: Joi.array()
-    .items(
-      Joi.object({
-        title: Joi.string().required().messages({
-          "any.required": "Detail title is required.",
-          "string.base": "Detail title must be a string.",
-        }),
+  rating: Joi.number().min(0).max(5).default(0),
 
-        description: Joi.string().required().messages({
-          "any.required": "Detail description is required.",
-          "string.base": "Detail description must be a string.",
-        }),
+  price: Joi.number().positive().required(),
 
-        image: Joi.string().optional().messages({
-          "string.base": "Image must be a string.",
-        }),
-      })
-    )
-    .min(1)
-    .required()
-    .messages({
-      "any.required": "Product details are required.",
-      "array.base": "Product details must be an array of objects.",
-      "array.min": "At least one product detail is required.",
-    }),
+  discount: Joi.string().allow("", null).optional(),
 
-  size: Joi.string()
-    .valid("small", "medium", "large", "xl", "xxl")
-    .default("small")
-    .required()
-    .messages({
-      "any.required": "Size is required.",
-      "any.only": "Size must be one of: small, medium, large, xl, xxl.",
-    }),
+  description: Joi.string().required(),
+
+  // Accepts an Array of strings (e.g., ["Red", "#000000"])
+  colors: Joi.array().items(Joi.string()).min(1).required().messages({
+    "array.min": "Please select or add at least one color.",
+    "any.required": "Colors are required.",
+  }),
+
+  // Accepts an Array of strings
+  size: Joi.array().items(Joi.string()).required().messages({
+    "any.required": "Sizes are required.",
+  }),
 });
 
 const validateCreateProduct = (req, res, next) => {
   const { error } = createProductSchema.validate(req.body, {
     abortEarly: false,
-    allowUnknown: true,
+    allowUnknown: true, // Allows calculated fields like priceAfterDiscount if passed
   });
 
   if (error) {
     const errorMessages = error.details.map(detail => detail.message);
-
     return res.status(400).json({
       success: false,
       message: "Validation failed.",
@@ -94,6 +58,4 @@ const validateCreateProduct = (req, res, next) => {
   next();
 };
 
-module.exports = {
-  validateCreateProduct,
-};
+module.exports = { validateCreateProduct };

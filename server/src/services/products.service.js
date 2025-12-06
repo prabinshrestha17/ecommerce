@@ -1,24 +1,33 @@
 const Product = require("../model/product.model");
 
-exports.createProductService = async ({
-  productName,
-  productTitle,
-  productDescription,
-  price,
-  productImage,
-  size,
-  category,
-  productDetails,
-}) => {
+exports.createProductService = async data => {
   try {
+    const {
+      productName,
+      productImage,
+      rating,
+      price,
+      discount,
+      description,
+      gender,
+      colors,
+      size,
+    } = data;
+
+    const numericDiscount = discount ? parseInt(discount.replace("%", "")) : 0;
+
+    const priceAfterDiscount = price - (price * numericDiscount) / 100;
+
     const response = await Product.create({
       productName,
-      productTitle,
-      productDescription,
-      price,
       productImage,
-      productDetails,
-      category,
+      rating,
+      price,
+      discount,
+      priceAfterDiscount,
+      description,
+      gender,
+      colors,
       size,
     });
 
@@ -40,6 +49,9 @@ exports.getAllProductsService = async () => {
 exports.getSpecificProductService = async id => {
   try {
     const res = await Product.findById(id);
+    if (!res) {
+      throw new Error("product not found ");
+    }
     return res;
   } catch (error) {
     return error.message;
@@ -58,7 +70,6 @@ exports.updateProductService = async ({ id, data }) => {
 exports.deleteProductService = async id => {
   try {
     const res = await Product.findByIdAndDelete(id);
-
     return res;
   } catch (error) {
     return error.message;

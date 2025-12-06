@@ -13,11 +13,11 @@ const Navbar = () => {
   ];
 
   const navItems = [
-    { name: "Men", path: "/products/men" },
-    { name: "Women", path: "/products/women" },
-    { name: "Kids", path: "/products/kids" },
-    { name: "Sales", path: "/products/sales" },
-    { name: "Electronics", path: "/products/electronics" },
+    { name: "Men", path: "/men" },
+    { name: "Women", path: "/women" },
+    { name: "Kids", path: "/kids" },
+    { name: "Sales", path: "/sales" },
+    { name: "Electronics", path: "/electronics" },
   ];
 
   useEffect(() => {
