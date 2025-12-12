@@ -12,7 +12,11 @@ const cartRouter = require("./src/routes/cart.routes");
 const cors = require("cors");
 const fileRouter = require("./src/routes/file.routes");
 const { connectDb } = require("./database/connectDatabase");
-const { deployedFrontendUrl, localFrontend } = require("./src/api/dotenv");
+const {
+  deployedFrontendUrl,
+  localFrontend,
+  adminurl,
+} = require("./src/api/dotenv");
 
 const app = express();
 connectDb();
@@ -22,7 +26,7 @@ app.set("view engine", "pug");
 
 app.use(
   cors({
-    origin: [deployedFrontendUrl, localFrontend],
+    origin: [deployedFrontendUrl, localFrontend, adminurl],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],

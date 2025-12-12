@@ -15,10 +15,7 @@ import { useDropzone } from "react-dropzone";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Swal from "sweetalert2";
-
-const API_BASE_URL = "http://localhost:8000";
-const PRODUCT_URL = `${API_BASE_URL}/product`;
-const FILE_UPLOAD_URL = `${API_BASE_URL}/file`;
+import { baseurl } from "@/api/env";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
@@ -68,7 +65,7 @@ export default function ProductsPage() {
 
   const fetchProducts = useCallback(async () => {
     try {
-      const response = await axios.get(`${PRODUCT_URL}/get-all`);
+      const response = await axios.get(`${baseurl}/product/get-all`);
       if (response.data.success) {
         setProducts(response.data.data);
       }
@@ -196,7 +193,9 @@ export default function ProductsPage() {
 
       if (urlToRemove.startsWith("blob:")) {
         URL.revokeObjectURL(urlToRemove);
-        newFiles.splice(newFiles.indexOf(isFile), 1);
+        if (isFile) {
+          newFiles.splice(newFiles.indexOf(isFile), 1);
+        }
       }
 
       newPreviews.splice(index, 1);
@@ -211,7 +210,7 @@ export default function ProductsPage() {
       formData.append("document", file);
     });
 
-    const response = await axios.post(`${FILE_UPLOAD_URL}/multiple`, formData, {
+    const response = await axios.post(`${baseurl}/file/multiple`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
 
@@ -252,7 +251,9 @@ export default function ProductsPage() {
     }).then(async result => {
       if (result.isConfirmed) {
         try {
-          const response = await axios.delete(`${PRODUCT_URL}/delete/${id}`);
+          const response = await axios.delete(
+            `${baseurl}/product/delete/${id}`
+          );
 
           if (response.data.success) {
             Swal.fire("Deleted!", "Product has been deleted.", "success");
@@ -271,7 +272,7 @@ export default function ProductsPage() {
 
   const handleView = async id => {
     try {
-      const response = await axios.get(`${PRODUCT_URL}/get-specific/${id}`);
+      const response = await axios.get(`${baseurl}/product/get-specific/${id}`);
       if (response.data.success) {
         setViewingProduct(response.data.data);
         setIsViewModalOpen(true);
@@ -283,7 +284,7 @@ export default function ProductsPage() {
 
   const handleEdit = async id => {
     try {
-      const response = await axios.get(`${PRODUCT_URL}/get-specific/${id}`);
+      const response = await axios.get(`${baseurl}/product/get-specific/${id}`);
       if (response.data.success) {
         const prod = response.data.data;
         setEditingId(id);
@@ -336,11 +337,11 @@ export default function ProductsPage() {
       let response;
       if (editingId) {
         response = await axios.put(
-          `${PRODUCT_URL}/update/${editingId}`,
+          `${baseurl}/product/update/${editingId}`,
           payload
         );
       } else {
-        response = await axios.post(`${PRODUCT_URL}/create`, payload);
+        response = await axios.post(`${baseurl}/product/create`, payload);
       }
 
       if (response.data.success) {

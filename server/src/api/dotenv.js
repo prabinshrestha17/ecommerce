@@ -10,6 +10,7 @@ const jwtSecret = process.env.JWT_SECRET;
 const refreshToken = process.env.JWT_REFRESH_SECRET;
 const deployedFrontendUrl = process.env.DEPLOYED_FRONT_URL;
 const localFrontend = process.env.LOCAL_FRONTEND_URL;
+const adminurl = process.env.LOCAL_ADMIN_URL;
 
 console.log(mongoUri);
 
@@ -31,4 +32,5 @@ module.exports = {
   cloudinaryUrl,
   deployedFrontendUrl,
   localFrontend,
+  adminurl,
 };
